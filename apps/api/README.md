@@ -22,6 +22,8 @@ pnpm run start:dev
 
 Serves on **http://localhost:3000** with watch/hot-reload.
 
+Interactive API docs (Swagger UI, generated from the Zod DTOs via `nestjs-zod`) are at **http://localhost:3000/docs**.
+
 ## Other scripts
 ```bash
 pnpm run build       # compile to dist/

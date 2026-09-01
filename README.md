@@ -40,6 +40,8 @@ pnpm --filter api run start:dev   # backend  -> http://localhost:3000
 pnpm --filter web run dev         # frontend -> http://localhost:5173
 ```
 
+API docs (Swagger UI) are served at **http://localhost:3000/docs** while the backend is running.
+
 See `apps/api/README.md` and `apps/web/README.md` for each app's other scripts (build, lint, test).
 
 ## Status

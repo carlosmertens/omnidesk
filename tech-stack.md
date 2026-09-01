@@ -15,7 +15,7 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 - **NestJS** (chosen over Express specifically) — module/DI structure absorbs the complexity being deferred now (queues, WebSockets, guards) without a later rewrite; also a deliberate learning goal for this project.
 - **`nestjs-zod`** — reuses the same Zod schemas as DTOs/validation pipes instead of duplicating with `class-validator`.
 - **Nest's built-in `Logger`** — structured logs (context, level) instead of raw `console`, at no extra setup cost.
-- **`@nestjs/swagger` + `nestjs-zod`'s `patchNestJsSwagger()`** — official Nest OpenAPI module, generating interactive Swagger UI docs directly from the existing Zod DTOs (no separate schema duplication just for docs).
+- **`@nestjs/swagger` + `nestjs-zod`'s `cleanupOpenApiDoc()`** — official Nest OpenAPI module, generating interactive Swagger UI docs directly from the existing Zod DTOs (no separate schema duplication just for docs). Served at `/docs`.
 - **Vitest + Supertest** — ships free with the Nest CLI scaffold (Nest v12's default for new ESM-first projects is Vitest, not Jest; adopted as-is rather than fighting the CLI default).
 - **ESM** (`"type": "module"`) — Nest v12's default module system for new projects.
 
