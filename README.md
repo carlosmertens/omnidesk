@@ -27,9 +27,9 @@ packages/
 
 ```bash
 pnpm install
+cp .env.example .env      # Postgres creds for Docker Compose
+docker compose up -d      # starts Postgres 18 + pgvector -> localhost:5432
 ```
-
-> Postgres + pgvector via Docker Compose is not wired up yet (next step in `implementation-plan.md` Phase 0) — the backend doesn't need a database for the current scaffold.
 
 ## Running locally
 

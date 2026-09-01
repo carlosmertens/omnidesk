@@ -49,7 +49,8 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 - **Polling** (e.g. every 10–15s) — sufficient feel at MVP agent volumes; WebSockets is a clean later upgrade (Nest has first-class support when needed).
 
 ## Containerization
-- **Docker Compose**: Postgres + pgvector only (`pgvector/pgvector:pg16`).
+- **Docker Compose**: Postgres + pgvector only (`pgvector/pgvector:pg18` — Postgres 18 is current as of this writing, checked via context7/Docker Hub rather than assuming pg16).
+  - Postgres 18's official image changed its data-directory convention: the named volume must mount at `/var/lib/postgresql` (not `/var/lib/postgresql/data`, the pg16/17 convention) or the container crash-loops on start. Worth knowing if bumping the major version again later.
 - Run the Nest server directly (`npm run start:dev`) locally for fastest iteration; add it to Compose closer to deployment.
 
 ## Ticket model (from project-scope.md, for reference)
