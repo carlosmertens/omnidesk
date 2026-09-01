@@ -10,7 +10,8 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 ## Phase 0: Project Scaffolding & Tooling
 **Goal:** Get frontend, backend, and DB booting together before any real feature code.
 
-1. Init pnpm workspace: root `package.json` + `pnpm-workspace.yaml` declaring `apps/*` and `packages/*`; root `README.md`. Create empty `apps/api`, `apps/web`, and `packages/shared` folders (the latter a placeholder for shared Zod schemas — no content yet, just the slot so adding them later isn't a restructure). *Learning: workspace tooling — how a monorepo lets multiple packages reference each other locally without publishing to npm.*
+1. ✅ Init pnpm workspace: root `package.json` + `pnpm-workspace.yaml` declaring `apps/*` and `packages/*`; root `README.md`. Create empty `apps/api`, `apps/web`, and `packages/shared` folders (the latter a placeholder for shared Zod schemas — no content yet, just the slot so adding them later isn't a restructure). *Learning: workspace tooling — how a monorepo lets multiple packages reference each other locally without publishing to npm.*
+   - Done: NestJS scaffolded in `apps/api` (v12, defaults to ESM+Vitest — see tech-stack.md), Vite React+TS scaffolded in `apps/web`, `packages/shared` stubbed with a placeholder `package.json`. Both apps build cleanly (`pnpm --filter api run build`, `pnpm --filter web run build`). Git repo initialized, initial commit made.
 2. `docker-compose.yml` running `pgvector/pgvector:pg16` only, named volume, `.env` for Postgres creds. Checkpoint: `docker compose up`, `psql` in, `CREATE EXTENSION vector;` succeeds.
 3. Scaffold Nest app inside `apps/api` as a pnpm workspace package. *Learning: Nest's module/controller/service triad and CLI generator conventions.*
 4. Scaffold Vite React+TS app inside `apps/web` as a pnpm workspace package, Tailwind + Shadcn init, React Router base layout with one placeholder route.

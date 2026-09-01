@@ -1,32 +1,30 @@
-# React + TypeScript + Vite
+# OmniDesk Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite frontend for OmniDesk. See the [root README](../../README.md) for full-stack setup; this covers running the frontend on its own.
 
-Currently, two official plugins are available:
+## Requirements
+- Node 24+, pnpm 10+ (managed at the workspace root)
+- The API running (see `../api/README.md`) for the frontend to have anything to talk to
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run
 
-## React Compiler
+From the workspace root (recommended):
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm --filter web run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Or from this directory:
+
+```bash
+pnpm run dev
+```
+
+Serves on **http://localhost:5173** with hot module replacement.
+
+## Other scripts
+```bash
+pnpm run build    # type-check + production build to dist/
+pnpm run preview  # preview the production build locally
+pnpm run lint     # oxlint
+```
