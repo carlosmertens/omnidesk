@@ -8,6 +8,10 @@ OmniDesk: a multi-tenant, AI-native helpdesk. An AI first-responder classifies i
 
 **Always use the `context7` MCP server** (`resolve-library-id` then `query-docs`) before writing code against, or citing APIs/config/CLI flags for, any library in this stack. This is a fast-moving JS/TS toolchain (NestJS, Vite, pnpm, `nestjs-zod`, etc.) and training-data knowledge goes stale quickly — this already caught one real bug (`tech-stack.md` had recommended `nestjs-zod`'s `patchNestJsSwagger()`, but the current API is `cleanupOpenApiDoc()`; the stale name would have crashed the app at boot).
 
+## Workflow
+
+**Never run `git commit` (or `git push`) in this repo unless explicitly asked to.** After implementing a change, give the normal end-of-turn summary plus a suggested commit message, and stop there — the user wants time to review the diff and ask questions before it's committed. This is a personal learning project; committing on their behalf short-circuits that.
+
 ## Repo structure
 
 pnpm workspace monorepo:
