@@ -8,6 +8,4 @@ build/
 *.log
 .DS_Store
 coverage/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
