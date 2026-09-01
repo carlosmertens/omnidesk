@@ -1,5 +1,13 @@
 import { useState } from 'react';
 import { apiGet } from '../lib/api';
+import { Button } from './ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from './ui/card';
 
 type HealthResponse = {
   status: 'ok';
@@ -29,30 +37,26 @@ export function BackendHealthCheck() {
   }
 
   return (
-    <section
-      style={{
-        border: '1px solid #ccc',
-        borderRadius: 8,
-        padding: 16,
-        margin: '16px 0',
-      }}
-    >
-      <h2>Backend connection check</h2>
-      <button
-        type="button"
-        onClick={checkHealth}
-        disabled={state.phase === 'loading'}
-      >
-        {state.phase === 'loading' ? 'Checking…' : 'Check backend health'}
-      </button>
-      {state.phase === 'success' && (
-        <p style={{ color: 'green' }}>
-          ✅ {state.data.status} — {state.data.timestamp}
-        </p>
-      )}
-      {state.phase === 'error' && (
-        <p style={{ color: 'red' }}>❌ {state.message}</p>
-      )}
-    </section>
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>Backend connection check</CardTitle>
+        <CardDescription>
+          Calls GET /api/health on the NestJS API.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-3">
+        <Button onClick={checkHealth} disabled={state.phase === 'loading'}>
+          {state.phase === 'loading' ? 'Checking…' : 'Check backend health'}
+        </Button>
+        {state.phase === 'success' && (
+          <p className="text-sm text-emerald-600">
+            ✅ {state.data.status} — {state.data.timestamp}
+          </p>
+        )}
+        {state.phase === 'error' && (
+          <p className="text-sm text-destructive">❌ {state.message}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

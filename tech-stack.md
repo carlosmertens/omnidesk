@@ -3,8 +3,8 @@
 Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenant, AI first-response over a KB, admin + representative roles). Complex/production-grade concerns are explicitly deferred rather than decided now — see bottom.
 
 ## Frontend
-- **React + TypeScript + Vite + React Router** — SPA for ticket dashboard and detail views.
-- **Tailwind CSS + Shadcn UI** — fast build of data-dense tables, dialogs, sidebars.
+- **React + TypeScript + Vite + React Router** — SPA for ticket dashboard and detail views. Router wired in `main.tsx` (`BrowserRouter` + a `Layout` component rendering `<Outlet />`) — declarative mode, not the data/framework router, since this is a plain Vite SPA.
+- **Tailwind CSS v4** (`@tailwindcss/vite` plugin) **+ shadcn/ui** (Nova preset, **Base UI** primitives) — fast build of data-dense tables, dialogs, sidebars. Base UI over Radix because it's the shadcn CLI's current recommended default (`shadcn@latest init -b base`), not a deliberate Radix rejection — consistent with this project's "follow current tool defaults" pattern elsewhere (ESM+Vitest, oxlint, pg18). `@` import alias configured in `vite.config.ts` + `tsconfig.app.json` (`paths` only — `baseUrl` is deprecated in the TypeScript version this project is on).
 - **Zod + React Hook Form** (`@hookform/resolvers/zod`) — form validation and type inference.
   - Schemas live in `packages/shared` (see Monorepo below) so frontend and backend import the same source of truth instead of copy-pasting.
 
