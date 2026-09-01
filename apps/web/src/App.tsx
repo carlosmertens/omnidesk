@@ -2,6 +2,7 @@ import { useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
+import { BackendHealthCheck } from './components/BackendHealthCheck'
 import './App.css'
 
 function App() {
@@ -28,6 +29,8 @@ function App() {
         >
           Count is {count}
         </button>
+
+        <BackendHealthCheck />
       </section>
 
       <div className="ticks"></div>

@@ -22,8 +22,10 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 9. ✅ Add `@nestjs/swagger` + `nestjs-zod`, wire `cleanupOpenApiDoc()` in `main.ts`, serve docs at `/docs`. *Learning: OpenAPI generation from code — docs stay in sync with the API because they're derived from the same DTOs, not hand-written separately.*
    - Done: added a throwaway `POST /ping` endpoint (`src/ping/`) with a Zod-backed DTO to prove the full loop — `/docs` renders Swagger UI, valid payloads return 201, invalid payloads are rejected with a 400 and a clear Zod error. This also completes task 7's validation-pipe goal (global `ZodValidationPipe` wired via `APP_PIPE` in `app.module.ts`). Note: `nestjs-zod`'s current API is `cleanupOpenApiDoc()`, not `patchNestJsSwagger()` as originally noted in tech-stack.md — corrected there. Also hit and fixed a `cleanupOpenApiDoc` "duplicate schema name" error caused by setting an explicit `.meta({id})` on the Zod schema — removed it and let `nestjs-zod` derive the schema name from the DTO class instead.
 10. Confirm Vitest + Supertest smoke test passes out of the box.
-11. Frontend `.env`/API base URL + a thin fetch wrapper.
-12. Root dev script (`pnpm -r --parallel dev` or similar, plus Docker) running `apps/api` + `apps/web` concurrently. Checkpoint: browser → frontend fetch → Nest `/ping` round-trips.
+11. ✅ Frontend `.env`/API base URL + a thin fetch wrapper.
+   - Done: `apps/web/.env` (+ `.env.example`) sets `VITE_API_BASE_URL`; `apps/web/src/lib/api.ts` is the thin `fetch` wrapper (`credentials: 'include'` for future cookie-session auth).
+12. ✅ Root dev script (plus Docker) running `apps/api` + `apps/web` concurrently. Checkpoint: browser → frontend fetch → Nest round-trips.
+   - Done ahead of schedule, as a connectivity test: added `GET /api/health` (`src/health/`), a global `/api` route prefix, and `app.enableCors()` (origin from `FRONTEND_URL`, defaults to `localhost:5173`, `credentials: true`) — all not originally itemized in this phase but needed to prove cross-origin calls actually work. Added `BackendHealthCheck.tsx` component on the frontend homepage with a button that calls `GET /api/health` via the fetch wrapper. Verified live in Chrome: click → "✅ ok — &lt;timestamp&gt;" rendered from a real cross-origin request. Docker Compose (task 2) still outstanding — this checkpoint didn't need a DB.
 
 ## Phase 1: Auth & Multi-Tenant Foundation
 **Goal:** `Workspace` + `User` as the root of every table, session login working, before any ticket logic.

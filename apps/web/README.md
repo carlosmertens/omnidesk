@@ -22,6 +22,8 @@ pnpm run dev
 
 Serves on **http://localhost:5173** with hot module replacement.
 
+Requires `VITE_API_BASE_URL` (see `.env`, defaults to `http://localhost:3000/api`) pointing at a running API — the homepage includes a "Check backend health" button (`src/components/BackendHealthCheck.tsx`) that calls `GET /api/health` to verify the connection.
+
 ## Other scripts
 ```bash
 pnpm run build    # type-check + production build to dist/

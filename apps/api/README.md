@@ -24,6 +24,8 @@ Serves on **http://localhost:3000** with watch/hot-reload.
 
 Interactive API docs (Swagger UI, generated from the Zod DTOs via `nestjs-zod`) are at **http://localhost:3000/docs**.
 
+All routes are under the `/api` prefix (e.g. `GET /api/health`). CORS is enabled for the frontend origin (`FRONTEND_URL` env var, defaults to `http://localhost:5173`), with credentials allowed for the cookie-based session auth planned in Phase 1.
+
 ## Other scripts
 ```bash
 pnpm run build       # compile to dist/
