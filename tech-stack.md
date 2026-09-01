@@ -8,6 +8,10 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 - **Zod + React Hook Form** (`@hookform/resolvers/zod`) — form validation and type inference.
   - Schemas live in `packages/shared` (see Monorepo below) so frontend and backend import the same source of truth instead of copy-pasting.
 
+## Formatting & linting
+- **oxlint** (linting) + **Prettier** (formatting) in both apps — the Nest v12 and Vite CLI defaults; kept as-is rather than adopting Biome, since Biome would replace two already-working, framework-default tools for marginal benefit. `apps/web` originally shipped with no formatter (oxlint doesn't format); added Prettier there to match `apps/api`.
+- `.vscode/settings.json` (committed) pins Prettier as the workspace formatter and disables Biome's save actions for this repo specifically, since Biome is configured as the *global* default formatter in the user's own editor settings (used in other projects) and would otherwise flag every file here against its own defaults.
+
 ## Monorepo
 - **pnpm workspaces** — `apps/api` (NestJS), `apps/web` (Vite React), `packages/shared` (Zod schemas and any other cross-cutting types). Chosen over npm/yarn workspaces for speed/disk efficiency, and over Turborepo/Nx as unnecessary tooling overhead for a two-app MVP.
 

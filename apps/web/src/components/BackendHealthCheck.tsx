@@ -29,9 +29,20 @@ export function BackendHealthCheck() {
   }
 
   return (
-    <section style={{ border: '1px solid #ccc', borderRadius: 8, padding: 16, margin: '16px 0' }}>
+    <section
+      style={{
+        border: '1px solid #ccc',
+        borderRadius: 8,
+        padding: 16,
+        margin: '16px 0',
+      }}
+    >
       <h2>Backend connection check</h2>
-      <button type="button" onClick={checkHealth} disabled={state.phase === 'loading'}>
+      <button
+        type="button"
+        onClick={checkHealth}
+        disabled={state.phase === 'loading'}
+      >
         {state.phase === 'loading' ? 'Checking…' : 'Check backend health'}
       </button>
       {state.phase === 'success' && (
@@ -39,7 +50,9 @@ export function BackendHealthCheck() {
           ✅ {state.data.status} — {state.data.timestamp}
         </p>
       )}
-      {state.phase === 'error' && <p style={{ color: 'red' }}>❌ {state.message}</p>}
+      {state.phase === 'error' && (
+        <p style={{ color: 'red' }}>❌ {state.message}</p>
+      )}
     </section>
   );
 }
