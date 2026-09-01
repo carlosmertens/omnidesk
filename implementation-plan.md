@@ -19,9 +19,10 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 6. Build `PrismaService` (`OnModuleInit`/`OnModuleDestroy`) + global `PrismaModule`. *Learning: Nest DI — `@Injectable()` + module `providers`/`exports`, lifecycle hooks.*
 7. Add `nestjs-zod`, wire a global `ZodValidationPipe`; one throwaway DTO to confirm validation rejects bad payloads. *Learning: Nest pipes.*
 8. Nest `Logger` convention + `@nestjs/config` for env loading. *Learning: `ConfigModule` — injectable env config vs. raw `process.env`.*
-9. Confirm Jest + Supertest smoke test passes out of the box.
-10. Frontend `.env`/API base URL + a thin fetch wrapper.
-11. Root dev script (`pnpm -r --parallel dev` or similar, plus Docker) running `apps/api` + `apps/web` concurrently. Checkpoint: browser → frontend fetch → Nest `/ping` round-trips.
+9. Add `@nestjs/swagger`, wire it in `main.ts` with `patchNestJsSwagger()` so it reads the existing Zod DTOs, serve docs at `/docs`. Checkpoint: `/docs` renders Swagger UI showing the throwaway endpoint from task 7. *Learning: OpenAPI generation from code — docs stay in sync with the API because they're derived from the same DTOs, not hand-written separately.*
+10. Confirm Vitest + Supertest smoke test passes out of the box.
+11. Frontend `.env`/API base URL + a thin fetch wrapper.
+12. Root dev script (`pnpm -r --parallel dev` or similar, plus Docker) running `apps/api` + `apps/web` concurrently. Checkpoint: browser → frontend fetch → Nest `/ping` round-trips.
 
 ## Phase 1: Auth & Multi-Tenant Foundation
 **Goal:** `Workspace` + `User` as the root of every table, session login working, before any ticket logic.
