@@ -26,7 +26,8 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 - **ESM** (`"type": "module"`) — Nest v12's default module system for new projects.
 
 ## Database & ORM
-- **PostgreSQL + Prisma** (via a `PrismaService`/`PrismaModule`, the standard Nest DI pattern).
+- **PostgreSQL + Prisma 7** (pinned to `7.10.0`; npm's `latest` tag currently points at an `8.0.0-rc.*` pre-release, so this needs pinning explicitly rather than a bare install), via a `PrismaService`/`PrismaModule` — the standard Nest DI pattern (`OnModuleInit`/`OnModuleDestroy` lifecycle hooks, `@Global()` module).
+  - Prisma 7 is architecturally different from earlier Prisma versions: no Rust query engine binary, client code generates into the project source tree (`apps/api/src/generated/prisma`, gitignored) instead of `node_modules`, and every `PrismaClient` requires an explicit driver adapter — `@prisma/adapter-pg` (+ `pg`) for Postgres — rather than a bundled engine. Config lives in `apps/api/prisma.config.ts`.
   - Prisma is not a perfect fit for this project specifically — no native `vector` type, so KB similarity search requires raw `$queryRaw` SQL. Accepted as a known, bounded exception rather than a blocker; Drizzle (native pgvector support) is the realistic alternative if this becomes a real pain point later, but stacking a second unfamiliar tool on top of learning NestJS isn't worth it for v1.
   - Every table carries `workspace_id` from day one, even with a single real tenant early on — cheap now, painful to retrofit.
 
