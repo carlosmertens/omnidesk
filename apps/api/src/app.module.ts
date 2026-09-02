@@ -6,7 +6,6 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { envSchema } from './config/env.validation.js';
 import { HealthController } from './health/health.controller.js';
-import { PingController } from './ping/ping.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -17,7 +16,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     }),
     PrismaModule,
   ],
-  controllers: [AppController, PingController, HealthController],
+  controllers: [AppController, HealthController],
   providers: [
     AppService,
     {

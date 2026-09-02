@@ -27,13 +27,20 @@ packages/
 
 ```bash
 pnpm install
-cp .env.example .env      # Postgres creds for Docker Compose
-docker compose up -d      # starts Postgres 18 + pgvector -> localhost:5432
+cp .env.example .env                      # Postgres creds for Docker Compose
+docker compose up -d                      # starts Postgres 18 + pgvector -> localhost:5432
+cp apps/api/.env.example apps/api/.env    # DATABASE_URL for the API (required — no default)
 ```
 
 ## Running locally
 
-Run each app in its own terminal:
+Either run both at once from the root:
+
+```bash
+pnpm run dev
+```
+
+Or run each app in its own terminal (useful for keeping their logs separate):
 
 ```bash
 pnpm --filter api run start:dev   # backend  -> http://localhost:3000

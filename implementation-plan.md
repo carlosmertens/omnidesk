@@ -37,6 +37,8 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 
 **Phase 0 complete.** All 12 tasks done; full stack boots together (Docker Postgres + Nest API + Vite frontend), with Prisma, Zod-validated env config, Swagger docs, and a passing e2e smoke test as the foundation for Phase 1.
 
+**Post-completion review** caught and fixed several real issues that had accumulated across the individual task commits: the root `pnpm run dev` script never actually worked (shell glob-expanded `--filter ./apps/*` before pnpm saw it, and `apps/api` had no `dev` script for it to find anyway — fixed both); `PrismaService` was reading `process.env.DATABASE_URL` directly instead of the validated `ConfigService`, working only by load-order coincidence — now injects `ConfigService<EnvVariables, true>` like everything else; a fresh clone would fail to build entirely because Prisma's generated client (`src/generated/prisma`, gitignored) never gets created — `pnpm install` doesn't run it automatically since pnpm blocks dependency postinstall scripts by default — fixed with an explicit `"postinstall": "prisma generate"` in `apps/api/package.json` (verified via a clean `rm -rf src/generated && pnpm install`); the throwaway `POST /ping` endpoint (tasks 7/9) was removed now that it's served its purpose and Phase 0 is done; and both READMEs plus `CLAUDE.md` had drifted out of sync with what's actually implemented (missing the `apps/api/.env` setup step, stale "no database wired up yet" claims) — all corrected.
+
 ## Phase 1: Auth & Multi-Tenant Foundation
 **Goal:** `Workspace` + `User` as the root of every table, session login working, before any ticket logic.
 

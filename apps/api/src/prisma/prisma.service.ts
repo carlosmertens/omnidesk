@@ -4,7 +4,9 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
+import type { EnvVariables } from '../config/env.validation.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 
 @Injectable()
@@ -14,9 +16,11 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
 
-  constructor() {
+  constructor(configService: ConfigService<EnvVariables, true>) {
     super({
-      adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+      adapter: new PrismaPg({
+        connectionString: configService.get('DATABASE_URL', { infer: true }),
+      }),
     });
   }
 

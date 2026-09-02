@@ -5,6 +5,7 @@ NestJS backend for OmniDesk. See the [root README](../../README.md) for full-sta
 ## Requirements
 - Node 24+, pnpm 10+ (managed at the workspace root)
 - PostgreSQL + pgvector running (see root README's Docker Compose step)
+- `.env` in this directory with `DATABASE_URL` set (`cp .env.example .env` — no default; the app refuses to boot without a valid one)
 
 ## Run
 
@@ -32,5 +33,5 @@ pnpm run build       # compile to dist/
 pnpm run start:prod  # run compiled output
 pnpm run lint        # oxlint
 pnpm run test        # unit tests (Vitest)
-pnpm run test:e2e    # e2e tests (Vitest, Supertest)
+pnpm run test:e2e    # e2e tests (Vitest, Supertest) — requires Postgres running (boots the real AppModule, incl. Prisma)
 ```
