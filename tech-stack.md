@@ -18,7 +18,8 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 ## Backend
 - **NestJS** (chosen over Express specifically) — module/DI structure absorbs the complexity being deferred now (queues, WebSockets, guards) without a later rewrite; also a deliberate learning goal for this project.
 - **`nestjs-zod`** — reuses the same Zod schemas as DTOs/validation pipes instead of duplicating with `class-validator`.
-- **Nest's built-in `Logger`** — structured logs (context, level) instead of raw `console`, at no extra setup cost.
+- **Nest's built-in `Logger`** — structured logs (context, level) instead of raw `console`, at no extra setup cost. Convention: one `private readonly logger = new Logger(ClassName.name)` per injectable that needs to log.
+- **`@nestjs/config`, validated with a plain Zod schema** — `ConfigModule.forRoot({ isGlobal: true, validationSchema })` fails startup fast (and loudly) on missing/invalid env vars instead of failing later with a confusing `undefined` somewhere downstream. Uses `@nestjs/config`'s native Standard Schema support so the same Zod-first pattern covers env validation too, instead of adding `class-validator` just for this.
 - **`@nestjs/swagger` + `nestjs-zod`'s `cleanupOpenApiDoc()`** — official Nest OpenAPI module, generating interactive Swagger UI docs directly from the existing Zod DTOs (no separate schema duplication just for docs). Served at `/docs`.
 - **Global `/api` route prefix** (`app.setGlobalPrefix('api')`) — conventional REST API namespacing (e.g. `GET /api/health`); Swagger UI stays unprefixed at `/docs`.
 - **CORS via `app.enableCors()`** — origin read from `FRONTEND_URL` env var (defaults to `http://localhost:5173`), `credentials: true` for the cookie-based session auth planned in Phase 1.
