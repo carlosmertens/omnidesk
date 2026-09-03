@@ -42,7 +42,8 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 ## Phase 1: Auth & Multi-Tenant Foundation
 **Goal:** `Workspace` + `User` as the root of every table, session login working, before any ticket logic.
 
-1. Prisma schema for `Workspace` + `User` (`role`: `ADMIN`/`REPRESENTATIVE`, `workspaceId` FK). First real migration.
+1. ✅ Prisma schema for `Workspace` + `User` (`role`: `ADMIN`/`ASSOCIATE`, `workspaceId` FK). First real migration.
+   - Done: `Workspace` (`id` cuid, `name`, timestamps) and `User` (`id` cuid, `email`, `passwordHash`, `role` enum `ADMIN`/`ASSOCIATE`, `workspaceId` FK, timestamps), with `@@unique([workspaceId, email])` rather than a global-unique email — same address can exist across separate tenant workspaces, consistent with the workspace-scoped multi-tenancy model. `passwordHash` field added now (empty until task 3's bcrypt utility lands) since the column belongs on the model regardless of which task populates it. (Role was initially named `REPRESENTATIVE`, renamed to `ASSOCIATE` per user preference — no product-scope language change; since the migration was still uncommitted and local-only, the DB was reset and a single clean migration regenerated rather than keeping a rename-migration trail.) Migration `20260903221450_init_workspace_user` created and applied via `prisma migrate dev` against the running Docker Postgres; verified `nest build`, unit tests, and e2e tests all still pass against the regenerated Prisma client.
 2. Seed script creating one workspace + one bcrypt-hashed admin user. *Learning: Prisma seeding as the standard "no signup UI yet" workflow.*
 3. `bcrypt` hashing utility + `UsersService`; unit test it.
 4. `@nestjs/passport` + `passport-local`; `LocalStrategy` against `UsersService`. *Learning: Passport strategies wrapped by a Nest Guard.*
