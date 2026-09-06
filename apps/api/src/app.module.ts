@@ -7,6 +7,7 @@ import { AppService } from './app.service.js';
 import { envSchema } from './config/env.validation.js';
 import { HealthController } from './health/health.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
       validationSchema: envSchema,
     }),
     PrismaModule,
+    UsersModule,
   ],
   controllers: [AppController, HealthController],
   providers: [
