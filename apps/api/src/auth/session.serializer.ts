@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
-import { AuthService, type SafeUser } from './auth.service.js';
+import type { SafeUser } from '../users/safe-user.util.js';
+import { AuthService } from './auth.service.js';
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {

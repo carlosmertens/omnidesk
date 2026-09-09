@@ -36,4 +36,8 @@ export class UsersService {
   findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
+
+  findAllByWorkspace(workspaceId: string): Promise<User[]> {
+    return this.prisma.user.findMany({ where: { workspaceId } });
+  }
 }

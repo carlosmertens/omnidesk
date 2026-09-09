@@ -8,12 +8,3 @@ export const LoginSchema = z.object({
 });
 
 export class LoginDto extends createZodDto(LoginSchema) {}
-
-export const MeResponseSchema = z.object({
-  id: z.string(),
-  email: z.email(),
-  role: z.enum(['ADMIN', 'ASSOCIATE']),
-  workspaceId: z.string(),
-});
-
-export class MeResponseDto extends createZodDto(MeResponseSchema) {}
