@@ -39,3 +39,14 @@ model User {
 
   @@unique([workspaceId, email])
 }
+
+// Schema required by connect-pg-simple (apps/api/src/auth/) — column names/types
+// and the expire index are fixed by that library, not a modeling choice.
+model Session {
+  sid    String   @id
+  sess   Json
+  expire DateTime
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
+}

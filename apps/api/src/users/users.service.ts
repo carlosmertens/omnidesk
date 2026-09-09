@@ -32,4 +32,8 @@ export class UsersService {
       where: { workspaceId_email: { workspaceId, email } },
     });
   }
+
+  findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
 }
