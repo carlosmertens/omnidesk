@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ZodResponse } from 'nestjs-zod';
-import { LoginDto, MeResponseDto } from './auth.schema.js';
+import { UserResponseDto } from '../users/users.schema.js';
+import { LoginDto } from './auth.schema.js';
 import { LocalAuthGuard } from './local-auth.guard.js';
 import { Public } from './public.decorator.js';
 
@@ -23,7 +24,7 @@ import { Public } from './public.decorator.js';
 export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  @ZodResponse({ status: 200, type: MeResponseDto })
+  @ZodResponse({ status: 200, type: UserResponseDto })
   login(@Body() _body: LoginDto, @Req() req: Request) {
     // LocalAuthGuard has already run passport's LocalStrategy and populated req.user.
     return req.user as Express.User;
@@ -48,7 +49,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @ZodResponse({ status: 200, type: MeResponseDto })
+  @ZodResponse({ status: 200, type: UserResponseDto })
   me(@Req() req: Request) {
     if (!req.isAuthenticated()) {
       throw new UnauthorizedException();

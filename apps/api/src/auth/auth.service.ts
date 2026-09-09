@@ -1,14 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { User } from '../generated/prisma/client.js';
-import { UsersService } from '../users/users.service.js';
 import { comparePassword } from '../users/password.util.js';
-
-export type SafeUser = Omit<User, 'passwordHash'>;
-
-function toSafeUser(user: User): SafeUser {
-  const { passwordHash: _passwordHash, ...safeUser } = user;
-  return safeUser;
-}
+import type { SafeUser } from '../users/safe-user.util.js';
+import { toSafeUser } from '../users/safe-user.util.js';
+import { UsersService } from '../users/users.service.js';
 
 @Injectable()
 export class AuthService {

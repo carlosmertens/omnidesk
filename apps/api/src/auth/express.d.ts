@@ -1,4 +1,4 @@
-import type { SafeUser } from './auth.service.js';
+import type { SafeUser } from '../users/safe-user.util.js';
 
 declare global {
   namespace Express {
