@@ -1,3 +1,7 @@
+import connectPgSimple from 'connect-pg-simple';
+import session from 'express-session';
+import passport from 'passport';
+import { Pool } from 'pg';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -16,6 +20,22 @@ async function bootstrap() {
     origin: configService.get('FRONTEND_URL', { infer: true }),
     credentials: true,
   });
+
+  const PgSessionStore = connectPgSimple(session);
+  const sessionPool = new Pool({
+    connectionString: configService.get('DATABASE_URL', { infer: true }),
+  });
+  app.use(
+    session({
+      store: new PgSessionStore({ pool: sessionPool, tableName: 'session' }),
+      secret: configService.get('SESSION_SECRET', { infer: true }),
+      resave: false,
+      saveUninitialized: false,
+      cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 },
+    }),
+  );
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('OmniDesk API')
