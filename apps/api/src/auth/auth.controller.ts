@@ -13,7 +13,12 @@ import type { Request, Response } from 'express';
 import { ZodResponse } from 'nestjs-zod';
 import { LoginDto, MeResponseDto } from './auth.schema.js';
 import { LocalAuthGuard } from './local-auth.guard.js';
+import { Public } from './public.decorator.js';
 
+// The whole /auth/* prefix is exempt from the global AuthenticatedGuard —
+// login has to work before a session exists, and logout/me manage their own
+// auth check (req.isAuthenticated()) rather than relying on the guard.
+@Public()
 @Controller('auth')
 export class AuthController {
   @UseGuards(LocalAuthGuard)

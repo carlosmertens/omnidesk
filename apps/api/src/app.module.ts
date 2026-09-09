@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { AuthenticatedGuard } from './auth/authenticated.guard.js';
 import { AuthModule } from './auth/auth.module.js';
 import { envSchema } from './config/env.validation.js';
 import { HealthController } from './health/health.controller.js';
@@ -30,6 +31,10 @@ import { UsersModule } from './users/users.module.js';
     {
       provide: APP_INTERCEPTOR,
       useClass: ZodSerializerInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthenticatedGuard,
     },
   ],
 })
