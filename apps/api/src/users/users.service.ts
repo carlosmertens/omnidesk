@@ -4,7 +4,6 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { hashPassword } from './password.util.js';
 
 export interface CreateUserInput {
-  workspaceId: string;
   email: string;
   password: string;
   role: UserRole;
@@ -19,7 +18,6 @@ export class UsersService {
 
     return this.prisma.user.create({
       data: {
-        workspaceId: input.workspaceId,
         email: input.email,
         passwordHash,
         role: input.role,
@@ -27,17 +25,15 @@ export class UsersService {
     });
   }
 
-  findByEmail(workspaceId: string, email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
-      where: { workspaceId_email: { workspaceId, email } },
-    });
+  findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  findAllByWorkspace(workspaceId: string): Promise<User[]> {
-    return this.prisma.user.findMany({ where: { workspaceId } });
+  findAll(): Promise<User[]> {
+    return this.prisma.user.findMany();
   }
 }

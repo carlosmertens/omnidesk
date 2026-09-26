@@ -1,7 +1,7 @@
 # OmniDesk MVP — Implementation Plan
 
 ## Context
-OmniDesk is a greenfield project — only `project-scope.md` and `tech-stack.md` exist so far, no code. The scope defines a multi-tenant, email-only AI helpdesk (AI attempts to auto-resolve tickets against a per-workspace knowledge base; falls back to a human representative when there's no KB match or the ticket involves money/account actions). The stack is decided: React/Vite frontend, NestJS backend, Postgres+Prisma+pgvector, Claude+Voyage AI, session auth via Passport, SendGrid for email.
+OmniDesk is a greenfield project — only `project-scope.md` and `tech-stack.md` exist so far, no code. The scope defines a email-only AI helpdesk (AI attempts to auto-resolve tickets against a knowledge base; falls back to a human representative when there's no KB match or the ticket involves money/account actions). The stack is decided: React/Vite frontend, NestJS backend, Postgres+Prisma+pgvector, Claude+Voyage AI, session auth via Passport, SendGrid for email.
 
 The user is strong on frontend but has little backend experience, and explicitly wants this project to double as a NestJS/backend learning vehicle. The plan below is sequenced to build backend confidence early (a thin, fully-working full-stack slice before any AI/email complexity), isolates the two hardest new concepts (pgvector raw SQL, LLM SDK integration) into their own phase away from email-webhook debugging, and calls out the specific new backend concept being learned at each non-trivial backend task.
 
@@ -72,12 +72,14 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 
 **Phase 1 complete.** All 12 tasks done: `Workspace`/`User` schema with workspace-scoped email uniqueness, session-based auth (Passport local strategy + `express-session`/`connect-pg-simple`), a global `AuthenticatedGuard` with a `@Public()` escape hatch, `RolesGuard`/`@Roles()` for admin-only routes, `@CurrentWorkspace()` as the manual tenant-scoping hook everything downstream should use (no Postgres RLS), and a working frontend login flow with route guarding — the full-stack, authenticated foundation Phase 2's ticket CRUD builds on.
 
+**Post-Phase-1 change — multi-tenancy removed.** Decided the product is a single workspace: roles (`ADMIN`/`ASSOCIATE`) gate functionality, but there's only one tenant. Removed the `Workspace` model and `User.workspaceId` (email is now globally `@unique`), the `@CurrentWorkspace()` decorator, and the `workspaceId` field from the login DTO/`LocalStrategy`/login form/`/auth/me` response. `UsersService.findAllByWorkspace()` became `findAll()`. Since this was still pre-production dev data, the old migrations were deleted and replaced with a single fresh `init` migration (the DB was reset). Seed admin is now `admin@example.com` / `SeedPass#1234`. The Phase 1 notes above are kept as history and still mention workspaces.
+
 ## Phase 2: Core Ticket CRUD + Dashboard (No AI/Email Yet)
 **Goal:** Prove out the domain model and full-stack CRUD pattern against manually created tickets before touching AI or email.
 
 1. Prisma schema for `Ticket` (status `open`/`resolved`/`closed`, category enum, `assignedUserId`, `customerEmail`) and `TicketMessage` (`sender`: `customer`/`agent`/`ai`). Migrate.
 2. `TicketsModule`/`Service`/`Controller`: `POST /tickets` (manual creation stands in for inbound email), `GET /tickets/:id`. *Learning: the module pattern repeated at scale, cementing Phase 0/1.*
-3. `GET /tickets` with status/category filter + sort, workspace-scoped via `@CurrentWorkspace()`. Checkpoint: filtering/sorting works via query string.
+3. `GET /tickets` with status/category filter + sort, Checkpoint: filtering/sorting works via query string.
 4. `PATCH /tickets/:id` for status transitions (simple state-machine validation in the service) + manual assignment. `POST /tickets/:id/messages` to append a reply (reused later for AI-sent replies).
 5. Supertest e2e for create/list/filter/status-transition. *Learning: Nest's e2e pattern — real app module in-process against a test DB.*
 6. Frontend: ticket dashboard (filter/sort table) + manual "create ticket" form (RHF+Zod).
@@ -88,11 +90,11 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 ## Phase 3: Knowledge Base + Vector Search + AI Drafting/Summarization
 **Goal:** Layer AI/KB onto the manually created tickets from Phase 2, isolating pgvector raw SQL and the Claude/Voyage integration from email-webhook complexity.
 
-1. Prisma schema for `KbArticle` (title, body, category, workspace-scoped). Migrate.
+1. Prisma schema for `KbArticle` (title, body, category). Migrate.
 2. Raw-SQL migration (`migrate dev --create-only`, hand-edit) adding `embedding vector(1024)` + an ivfflat/hnsw index. *Learning: Prisma migrations are just tracked `.sql` files you can hand-write for what the schema DSL can't model.*
 3. `KbModule` CRUD, admin-only via `RolesGuard`. Checkpoint: CRUD an article via curl.
 4. Voyage AI SDK: `EmbeddingsService.embed(text)`. Store embedding via `$executeRaw` on create/update (Prisma can't map the vector column). *Learning: `Prisma.sql` tagged templates for safe raw SQL.*
-5. `KbSearchService.findBestMatch(embedding, workspaceId, category)` via `$queryRaw` using pgvector's `<=>` cosine-distance operator. *Learning: why similarity search bypasses Prisma's query builder.*
+5. `KbSearchService.findBestMatch(embedding, category)` via `$queryRaw` using pgvector's `<=>` cosine-distance operator. *Learning: why similarity search bypasses Prisma's query builder.*
 6. Frontend: KB management UI (admin-only route guard). Checkpoint: seed 2–3 articles per category through the UI.
 7. Anthropic SDK: `AiService.classify(subject, body)` and `AiService.draftReply(thread, kbArticle)`, using structured/tool-use output. *Learning: prompting for structured LLM output instead of parsing free text.*
 8. Wire classification into ticket creation. Checkpoint: manual ticket gets auto-categorized.
@@ -123,12 +125,12 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 5. Formalize the money/account-sensitive guard from Phase 3.9 into a named, unit-tested `RiskClassifier.isSensitive(ticket)` — the one rule the spec insists must never be bypassed.
 6. Nest exception filters for uniform API error shapes + frontend error handling. *Learning: exception filters as the counterpart to guards/pipes/interceptors.*
 7. Fill e2e coverage gaps (webhook idempotency, sensitive-category never-auto-resolves, role-guard enforcement).
-8. README pass documenting env vars, local setup, and on-ramps for every deferred item (pg-boss queue point, RLS as defense-in-depth alongside `@CurrentWorkspace()`, shared Zod package, attachments/object storage, observability, deployment target).
+8. README pass documenting env vars, local setup, and on-ramps for every deferred item (pg-boss queue point, shared Zod package, attachments/object storage, observability, deployment target).
 
 ## Critical files
 - `apps/api/prisma/schema.prisma` — multi-tenant data model every phase extends.
 - `apps/api/src/prisma/prisma.service.ts` — injectable Prisma client; home for raw pgvector `$queryRaw`/`$executeRaw` calls.
-- `apps/api/src/auth/` — strategy, guards, session serializer; defines `@CurrentWorkspace()`/`@Roles()` used everywhere downstream.
+- `apps/api/src/auth/` — strategy, guards, session serializer; defines `@Roles()` used everywhere downstream.
 - `apps/api/src/tickets/tickets.service.ts` — orchestration hub (classify → KB search → draft → auto-resolve), called from both manual creation and the email webhook.
 - `apps/api/src/webhooks/email-inbound.controller.ts` — signature-verification/idempotency boundary where untrusted external input enters the system.
 

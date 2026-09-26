@@ -12,7 +12,6 @@ describe('Users (e2e)', () => {
   let app: INestApplication<App>;
   let sessionPool: Pool;
   let prisma: PrismaService;
-  let workspaceId: string;
   let adminId: string;
   let associateId: string;
 
@@ -20,6 +19,9 @@ describe('Users (e2e)', () => {
   const ADMIN_PASSWORD = 'admin-password-123';
   const ASSOCIATE_EMAIL = 'associate@users-e2e.test';
   const ASSOCIATE_PASSWORD = 'associate-password-123';
+  // Every user this suite creates (directly or via POST /users) uses this
+  // domain, so cleanup can target them without touching other rows.
+  const TEST_USERS = { email: { endsWith: '@users-e2e.test' } };
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,14 +33,8 @@ describe('Users (e2e)', () => {
     await app.init();
 
     prisma = app.get(PrismaService);
-    const workspace = await prisma.workspace.create({
-      data: { name: `Users e2e ${Date.now()}` },
-    });
-    workspaceId = workspace.id;
-
     const admin = await prisma.user.create({
       data: {
-        workspaceId,
         email: ADMIN_EMAIL,
         passwordHash: await hashPassword(ADMIN_PASSWORD),
         role: 'ADMIN',
@@ -47,7 +43,6 @@ describe('Users (e2e)', () => {
     adminId = admin.id;
     const associate = await prisma.user.create({
       data: {
-        workspaceId,
         email: ASSOCIATE_EMAIL,
         passwordHash: await hashPassword(ASSOCIATE_PASSWORD),
         role: 'ASSOCIATE',
@@ -59,10 +54,10 @@ describe('Users (e2e)', () => {
   afterEach(async () => {
     // The Session table has no FK to User, so logged-in-session rows from
     // this test (and any newly-created user created via POST /users) would
-    // otherwise outlive the users/workspace below and just sit there until
-    // they naturally expire.
+    // otherwise outlive the users below and just sit there until they
+    // naturally expire.
     const testUserIds = await prisma.user
-      .findMany({ where: { workspaceId }, select: { id: true } })
+      .findMany({ where: TEST_USERS, select: { id: true } })
       .then((users) => users.map((u) => u.id).concat(adminId, associateId));
     await prisma.session.deleteMany({
       where: {
@@ -71,8 +66,7 @@ describe('Users (e2e)', () => {
         })),
       },
     });
-    await prisma.user.deleteMany({ where: { workspaceId } });
-    await prisma.workspace.delete({ where: { id: workspaceId } });
+    await prisma.user.deleteMany({ where: TEST_USERS });
     await sessionPool.end();
     await app.close();
   });
@@ -81,12 +75,12 @@ describe('Users (e2e)', () => {
     const agent = request.agent(app.getHttpServer());
     return agent
       .post('/api/auth/login')
-      .send({ workspaceId, email, password })
+      .send({ email, password })
       .expect(200)
       .then(() => agent);
   }
 
-  it('lets an admin create a new user scoped to their own workspace', async () => {
+  it('lets an admin create a new user', async () => {
     const agent = await loginAs(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     const response = await agent
@@ -101,19 +95,19 @@ describe('Users (e2e)', () => {
     expect(response.body).toMatchObject({
       email: 'newrep@users-e2e.test',
       role: 'ASSOCIATE',
-      workspaceId,
     });
     expect(response.body.passwordHash).toBeUndefined();
   });
 
-  it('lets an admin list users in their own workspace', async () => {
+  it('lets an admin list users', async () => {
     const agent = await loginAs(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     const response = await agent.get('/api/users').expect(200);
 
-    expect(response.body).toHaveLength(2);
-    expect(response.body.map((u: { email: string }) => u.email).sort()).toEqual(
-      [ADMIN_EMAIL, ASSOCIATE_EMAIL].sort(),
+    // The dev DB may also hold the seeded admin (or other rows), so assert
+    // containment rather than an exact list.
+    expect(response.body.map((u: { email: string }) => u.email)).toEqual(
+      expect.arrayContaining([ADMIN_EMAIL, ASSOCIATE_EMAIL]),
     );
   });
 

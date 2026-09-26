@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ZodResponse } from 'nestjs-zod';
-import { CurrentWorkspace } from '../auth/current-workspace.decorator.js';
 import { Roles } from '../auth/roles.decorator.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { toSafeUser } from './safe-user.util.js';
@@ -15,18 +14,15 @@ export class UsersController {
 
   @Post()
   @ZodResponse({ status: 201, type: UserResponseDto })
-  async create(
-    @Body() body: CreateUserDto,
-    @CurrentWorkspace() workspaceId: string,
-  ) {
-    const user = await this.usersService.create({ ...body, workspaceId });
+  async create(@Body() body: CreateUserDto) {
+    const user = await this.usersService.create(body);
     return toSafeUser(user);
   }
 
   @Get()
   @ZodResponse({ status: 200, type: [UserResponseDto] })
-  async findAll(@CurrentWorkspace() workspaceId: string) {
-    const users = await this.usersService.findAllByWorkspace(workspaceId);
+  async findAll() {
+    const users = await this.usersService.findAll();
     return users.map(toSafeUser);
   }
 }

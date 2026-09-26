@@ -9,11 +9,10 @@ export class AuthService {
   constructor(private readonly usersService: UsersService) {}
 
   async validateUser(
-    workspaceId: string,
     email: string,
     password: string,
   ): Promise<SafeUser | null> {
-    const user = await this.usersService.findByEmail(workspaceId, email);
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
       return null;
     }

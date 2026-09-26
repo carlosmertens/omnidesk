@@ -16,7 +16,6 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 
 const loginSchema = z.object({
-  workspaceId: z.string().min(1, 'Workspace ID is required'),
   email: z.email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
 });
@@ -53,22 +52,13 @@ export function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
-          <CardDescription>Sign in to your OmniDesk workspace.</CardDescription>
+          <CardDescription>Sign in to OmniDesk.</CardDescription>
         </CardHeader>
         <CardContent>
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-4"
           >
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="workspaceId">Workspace ID</Label>
-              <Input id="workspaceId" {...register('workspaceId')} />
-              {errors.workspaceId && (
-                <p className="text-sm text-destructive">
-                  {errors.workspaceId.message}
-                </p>
-              )}
-            </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" {...register('email')} />
