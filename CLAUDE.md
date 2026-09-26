@@ -28,6 +28,7 @@ Run from the repo root unless noted. Use `pnpm --filter api run <script>` / `pnp
 
 ```bash
 pnpm install                        # install all workspace deps
+docker compose up -d                # Postgres + pgvector (or `docker-compose` with standalone installs, e.g. Colima)
 
 pnpm --filter api run start:dev     # backend dev server, watch mode -> :3000
 pnpm --filter web run dev           # frontend dev server, HMR -> :5173
@@ -41,7 +42,14 @@ pnpm --filter web run lint          # oxlint (frontend)
 pnpm --filter api run test          # backend unit tests (Vitest)
 pnpm --filter api run test:e2e      # backend e2e tests (Vitest + Supertest)
 pnpm --filter api run test:watch    # backend unit tests, watch mode
+
+# Prisma (run from apps/api)
+pnpm exec prisma migrate dev --name <change>   # after editing schema.prisma
+pnpm exec prisma generate                      # migrate dev does NOT regenerate the client in Prisma 7
+pnpm exec prisma db seed                       # upsert ADMIN from SEED_ADMIN_EMAIL/PASSWORD (apps/api/.env)
 ```
+
+Seeded dev login: `admin@example.com` / `SeedPass#1234` (from `apps/api/.env`). Prisma 7 does not seed automatically after `migrate reset`/`migrate dev` — run `db seed` explicitly.
 
 To run a single test file/case, use Vitest's own filtering directly, e.g. `pnpm --filter api exec vitest run src/health/health.controller.spec.ts` or add `-t "test name"`.
 
@@ -52,8 +60,10 @@ Backend API docs (Swagger UI, generated from Zod DTOs) are served at `http://loc
 - **NestJS is ESM + Vitest**, not the older CommonJS + Jest combo — this is Nest v12's current default for new projects, adopted deliberately (see `tech-stack.md`). Source files use explicit `.js` extensions on relative imports (e.g. `import { AppService } from './app.service.js'`) as required by Node ESM resolution, even though the source files are `.ts`.
 - **Validation is Zod-first, not `class-validator`**: request DTOs are defined as Zod schemas via `nestjs-zod`'s `createZodDto()` (see `apps/api/src/health/health.schema.ts` for the pattern), validated by a global `ZodValidationPipe` registered as `APP_PIPE` in `app.module.ts`. Don't reach for `class-validator` decorators. Env vars follow the same convention: `apps/api/src/config/env.validation.ts` is a Zod schema passed as `ConfigModule.forRoot({ validationSchema })`'s `validationSchema` (Standard Schema support, no `class-validator` needed there either) — a missing/invalid env var fails startup immediately with a clear Zod error instead of surfacing later as an obscure runtime bug. Read config via the injected, generically-typed `ConfigService<EnvVariables, true>` — not raw `process.env` — so it goes through the same validation (see `main.ts`, `prisma.service.ts` for the pattern).
 - **Swagger docs are generated from those same Zod schemas** via `nestjs-zod`'s `cleanupOpenApiDoc()`, wired in `apps/api/src/main.ts`. Do not add an explicit `.meta({ id: ... })` on a Zod schema that shares a name with another schema/DTO — this throws a "duplicate schema name" error at boot; let `nestjs-zod` derive the schema name from the DTO class name instead.
-- **CORS and route prefixing** are both set in `apps/api/src/main.ts`: global prefix `/api`, CORS origin from `FRONTEND_URL` env var (default `http://localhost:5173`) with `credentials: true` — required because auth will be cookie/session-based, not token-based.
+- **CORS and route prefixing** are both set in `apps/api/src/main.ts`: global prefix `/api`, CORS origin from `FRONTEND_URL` env var (default `http://localhost:5173`) with `credentials: true` — required because auth is cookie/session-based, not token-based. (The CORS/session/passport wiring lives in `apps/api/src/setup-app.ts`'s `configureApp()`, shared by `main.ts` and the e2e tests.)
 - **Frontend talks to the backend via `apps/web/src/lib/api.ts`**, a thin `fetch` wrapper reading `VITE_API_BASE_URL` (see `apps/web/.env` / `.env.example`) and sending `credentials: 'include'` on every request, for the same cookie-session reason.
 - **Single workspace, role-based access**: there is no `Workspace` model or `workspaceId` column — the app is one workspace, and `User.email` is globally unique. Access control is purely by `User.role` (`ADMIN`/`ASSOCIATE`) via `RolesGuard` + `@Roles()` (`apps/api/src/auth/`). Multi-tenancy was built in Phase 1 and deliberately removed afterward (see `implementation-plan.md`); don't reintroduce `workspaceId` scoping without discussing it first.
-- **Database is wired up**: Postgres 18 + pgvector via Docker Compose (root `docker-compose.yml`), Prisma 7 (`apps/api/prisma/schema.prisma`, currently an empty schema — no models yet) with a driver adapter (`@prisma/adapter-pg`, since Prisma 7 has no bundled query engine), and an injectable `PrismaService`/`@Global()` `PrismaModule` (`apps/api/src/prisma/`). `apps/api/.env` (gitignored, copy from `.env.example`) must set `DATABASE_URL` — the app refuses to boot without a valid one (see the Zod env-validation note above). Prisma's generated client lives in `apps/api/src/generated/prisma` (gitignored, regenerated via `prisma generate`, which also runs as part of `pnpm install` via Prisma's own postinstall hook).
+- **Auth**: Passport local strategy (email + password) + `express-session` stored in Postgres via `connect-pg-simple`. A global `AuthenticatedGuard` (`APP_GUARD`) protects every route; mark exceptions with `@Public()`. Role checks use `@UseGuards(RolesGuard)` + `@Roles('ADMIN')`. Responses that include a user go through `toSafeUser()` (`apps/api/src/users/safe-user.util.ts`) so `passwordHash` never leaves the API.
+- **Database is wired up**: Postgres 18 + pgvector via Docker Compose (root `docker-compose.yml`), Prisma 7 (`apps/api/prisma/schema.prisma` — `User` + the `session` table) with a driver adapter (`@prisma/adapter-pg`, since Prisma 7 has no bundled query engine), and an injectable `PrismaService`/`@Global()` `PrismaModule` (`apps/api/src/prisma/`). `apps/api/.env` (gitignored, copy from `.env.example`) must set `DATABASE_URL` and `SESSION_SECRET` — the app refuses to boot without them (see the Zod env-validation note above); it also holds `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`, read only by `prisma/seed.ts` (which validates them with its own Zod schema, since it runs outside Nest). Env files: root `.env` (Docker Compose Postgres creds), `apps/api/.env`, `apps/web/.env` — each has a committed `.env.example`; keep them in sync when adding a var. Prisma's generated client lives in `apps/api/src/generated/prisma` (gitignored, regenerated via `prisma generate`, which also runs as part of `pnpm install` via Prisma's own postinstall hook).
+- **Frontend shell**: `/login` is public; all other routes go through `RequireAuth` → `AppShell` (dark top bar with brand, role, sign out) in `apps/web/src/main.tsx`. Theme tokens (light gray background, blue `--primary`, `--header`) live in `apps/web/src/index.css`.
 - Per-app `README.md` (`apps/api/README.md`, `apps/web/README.md`) document each app's scripts and env vars in more detail than this file.

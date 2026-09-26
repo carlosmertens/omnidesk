@@ -1,24 +1,38 @@
 import { PrismaPg } from '@prisma/adapter-pg';
+import { z } from 'zod';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { hashPassword } from '../src/users/password.util.js';
 
-const SEED_ADMIN_EMAIL = 'admin@example.com';
-const SEED_ADMIN_PASSWORD = 'SeedPass#1234';
+// Runs outside Nest (so no ConfigService), but fails fast on missing/invalid
+// vars the same way env.validation.ts does. Values come from apps/api/.env,
+// loaded by prisma.config.ts's `import 'dotenv/config'`.
+const seedEnv = z
+  .object({
+    DATABASE_URL: z.url(),
+    SEED_ADMIN_EMAIL: z.email(),
+    SEED_ADMIN_PASSWORD: z.string().min(8),
+  })
+  .parse(process.env);
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env['DATABASE_URL'] }),
+  adapter: new PrismaPg({ connectionString: seedEnv.DATABASE_URL }),
 });
 
 async function main() {
-  const admin = await prisma.user.create({
-    data: {
-      email: SEED_ADMIN_EMAIL,
-      passwordHash: await hashPassword(SEED_ADMIN_PASSWORD),
+  const passwordHash = await hashPassword(seedEnv.SEED_ADMIN_PASSWORD);
+
+  // Upsert so re-running the seed is safe, and picks up a changed password.
+  const admin = await prisma.user.upsert({
+    where: { email: seedEnv.SEED_ADMIN_EMAIL },
+    update: { passwordHash, role: 'ADMIN' },
+    create: {
+      email: seedEnv.SEED_ADMIN_EMAIL,
+      passwordHash,
       role: 'ADMIN',
     },
   });
 
-  console.log(`Seeded admin user ${admin.email} (password: ${SEED_ADMIN_PASSWORD})`);
+  console.log(`Seeded admin user ${admin.email}`);
 }
 
 main()
