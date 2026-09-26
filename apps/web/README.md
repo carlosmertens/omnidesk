@@ -35,7 +35,7 @@ Sign in at `/login` with the seeded admin (see the root README — default `admi
 | `src/lib/auth-context.tsx` | `AuthProvider` / `useAuth()` — calls `GET /auth/me` on load, exposes `login()` / `logout()` |
 | `src/components/LoginPage.tsx` | Email + password form (React Hook Form + Zod) |
 | `src/components/RequireAuth.tsx` | Redirects to `/login` when signed out |
-| `src/components/AppShell.tsx` | Signed-in chrome: top bar (`bg-primary`) with brand, role, and sign out |
+| `src/components/AppShell.tsx` | Signed-in chrome: bordered top bar with brand, role badge, and sign out |
 | `src/components/DashboardPage.tsx` | Dashboard (placeholder until Phase 2's ticket list) |
 | `src/components/ui/` | shadcn/ui components (Base UI primitives) |
 | `src/index.css` | Tailwind v4 + shadcn's default theme tokens (Nova preset, neutral base color) |
