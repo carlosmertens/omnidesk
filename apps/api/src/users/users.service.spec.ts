@@ -31,7 +31,6 @@ describe('UsersService', () => {
     prisma.user.create.mockResolvedValue({ id: 'user_1' });
 
     await service.create({
-      workspaceId: 'workspace_1',
       email: 'admin@example.com',
       password: 'correct-horse-battery-staple',
       role: 'ADMIN',
@@ -42,21 +41,18 @@ describe('UsersService', () => {
     expect(data.passwordHash).not.toBe('correct-horse-battery-staple');
     expect(data.passwordHash).toMatch(/^\$2[aby]\$/);
     expect(data).toMatchObject({
-      workspaceId: 'workspace_1',
       email: 'admin@example.com',
       role: 'ADMIN',
     });
   });
 
-  it('looks up a user by workspace-scoped email', async () => {
+  it('looks up a user by email', async () => {
     prisma.user.findUnique.mockResolvedValue(null);
 
-    await service.findByEmail('workspace_1', 'admin@example.com');
+    await service.findByEmail('admin@example.com');
 
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
-      where: {
-        workspaceId_email: { workspaceId: 'workspace_1', email: 'admin@example.com' },
-      },
+      where: { email: 'admin@example.com' },
     });
   });
 });

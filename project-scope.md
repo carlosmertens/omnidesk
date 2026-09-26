@@ -5,7 +5,7 @@ Small startup support teams waste valuable time and lose context by constantly s
 OmniDesk is a unified, AI-native helpdesk application that centralizes all customer emails and messages into a single collaborative workspace, streamlining workflows and empowering agents to resolve issues faster.
 
 ## Deployment model
-- Multi-tenant SaaS: one shared application instance serving many customer workspaces, with data isolated per workspace (including each workspace's own knowledge base).
+- Single workspace: one application instance serving one support team, with one shared knowledge base. Users are differentiated only by role (admin vs. representative), which gates what functionality they can access.
 - Channels (v1): email only. A workspace connects its support inbox (e.g. Gmail/Outlook OAuth); OmniDesk ingests inbound mail as tickets and sends replies from that connected address.
 
 ## Ticket model
@@ -31,7 +31,7 @@ Open questions:
 - PII handling: does customer email content get redacted before being sent to the AI provider, and what's the data retention policy for that content?
 
 ## Knowledge base
-- Dedicated KB per workspace: admins author/manage articles used to ground AI answers (not just raw ticket history).
+- Dedicated KB: admins author/manage articles used to ground AI answers (not just raw ticket history).
 - Needed for v1 AI response flow: article CRUD, and retrieval (e.g. vector search) to match incoming tickets to articles.
 - Open question: can representatives contribute articles (e.g. promote a resolved ticket to a KB article), or is authoring admin-only?
 

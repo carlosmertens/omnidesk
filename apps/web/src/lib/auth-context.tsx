@@ -12,11 +12,9 @@ export type CurrentUser = {
   id: string;
   email: string;
   role: 'ADMIN' | 'ASSOCIATE';
-  workspaceId: string;
 };
 
 export type LoginInput = {
-  workspaceId: string;
   email: string;
   password: string;
 };

@@ -17,27 +17,13 @@ enum UserRole {
   ASSOCIATE
 }
 
-model Workspace {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users User[]
-}
-
 model User {
   id           String   @id @default(cuid())
-  email        String
+  email        String   @unique
   passwordHash String
   role         UserRole
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-
-  @@unique([workspaceId, email])
 }
 
 // Schema required by connect-pg-simple (apps/api/src/auth/) — column names/types

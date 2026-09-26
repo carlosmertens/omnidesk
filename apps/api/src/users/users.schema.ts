@@ -13,7 +13,6 @@ export const UserResponseSchema = z.object({
   id: z.string(),
   email: z.email(),
   role: z.enum(['ADMIN', 'ASSOCIATE']),
-  workspaceId: z.string(),
 });
 
 export class UserResponseDto extends createZodDto(UserResponseSchema) {}

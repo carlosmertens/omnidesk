@@ -1,6 +1,6 @@
 # OmniDesk v1 Tech Stack (MVP)
 
-Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenant, AI first-response over a KB, admin + representative roles). Complex/production-grade concerns are explicitly deferred rather than decided now — see bottom.
+Scope: fast path to a working v1 per `project-scope.md` (email-only, single-workspace, AI first-response over a KB, admin + representative roles). Complex/production-grade concerns are explicitly deferred rather than decided now — see bottom.
 
 ## Frontend
 - **React + TypeScript + Vite + React Router** — SPA for ticket dashboard and detail views. Router wired in `main.tsx` (`BrowserRouter` + a `Layout` component rendering `<Outlet />`) — declarative mode, not the data/framework router, since this is a plain Vite SPA.
@@ -30,7 +30,7 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 - **PostgreSQL + Prisma 7** (pinned to `7.10.0`; npm's `latest` tag currently points at an `8.0.0-rc.*` pre-release, so this needs pinning explicitly rather than a bare install), via a `PrismaService`/`PrismaModule` — the standard Nest DI pattern (`OnModuleInit`/`OnModuleDestroy` lifecycle hooks, `@Global()` module).
   - Prisma 7 is architecturally different from earlier Prisma versions: no Rust query engine binary, client code generates into the project source tree (`apps/api/src/generated/prisma`, gitignored) instead of `node_modules`, and every `PrismaClient` requires an explicit driver adapter — `@prisma/adapter-pg` (+ `pg`) for Postgres — rather than a bundled engine. Config lives in `apps/api/prisma.config.ts`.
   - Prisma is not a perfect fit for this project specifically — no native `vector` type, so KB similarity search requires raw `$queryRaw` SQL. Accepted as a known, bounded exception rather than a blocker; Drizzle (native pgvector support) is the realistic alternative if this becomes a real pain point later, but stacking a second unfamiliar tool on top of learning NestJS isn't worth it for v1.
-  - Every table carries `workspace_id` from day one, even with a single real tenant early on — cheap now, painful to retrofit.
+  - Single workspace: no `workspace_id` columns. Multi-tenancy was built in Phase 1 and then removed as unneeded scope (see `implementation-plan.md`).
 
 ## Vector search
 - **pgvector** (Postgres extension) — stores knowledge base embeddings for the AI response-matching flow.
@@ -63,7 +63,6 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, multi-tenan
 
 ## Deferred (explicitly punted, not forgotten)
 - **Background job queue** — none for v1; AI calls run synchronously inside the webhook handler. Keep the classify → embed → search → draft chain fast enough to beat the email provider's webhook timeout. Add **pg-boss** (runs on existing Postgres, no new infra) as a Nest module once this becomes a bottleneck.
-- **Row-Level Security** for tenant isolation — rely on Prisma query-level `workspace_id` filtering for now; add Postgres RLS once there's more than one paying tenant.
 - **Attachments / object storage** — v1 handles text-only email bodies; add S3/R2 when attachment support is needed.
 - **Error tracking / observability stack (e.g. Sentry)** — defer until the core ticket → AI → reply loop works end-to-end; keep enough structured logging in the meantime to manually audit AI-sent replies (ticket id, KB article used, AI vs. human).
 - **Production deployment target** — not yet chosen.
