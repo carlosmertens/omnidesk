@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router';
 import { useAuth } from '../lib/auth-context';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
 const ROLE_LABELS = { ADMIN: 'Admin', ASSOCIATE: 'Associate' } as const;
@@ -12,19 +13,15 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="bg-primary text-primary-foreground">
+      <header className="border-b bg-background">
         <div className="flex h-14 items-center justify-between px-6">
-          <span className="text-lg font-bold tracking-tight">OmniDesk</span>
+          <span className="font-heading font-semibold">OmniDesk</span>
           {user && (
-            <div className="flex items-center gap-4 text-sm">
-              <span className="text-primary-foreground/80" title={user.email}>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" title={user.email}>
                 {ROLE_LABELS[user.role]}
-              </span>
-              <Button
-                variant="outline"
-                onClick={logout}
-                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-              >
+              </Badge>
+              <Button variant="outline" onClick={logout}>
                 Sign out
               </Button>
             </div>
