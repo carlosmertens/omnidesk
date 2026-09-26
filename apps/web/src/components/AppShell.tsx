@@ -12,18 +12,18 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="bg-header text-header-foreground">
+      <header className="bg-primary text-primary-foreground">
         <div className="flex h-14 items-center justify-between px-6">
           <span className="text-lg font-bold tracking-tight">OmniDesk</span>
           {user && (
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-header-foreground/80" title={user.email}>
+              <span className="text-primary-foreground/80" title={user.email}>
                 {ROLE_LABELS[user.role]}
               </span>
               <Button
                 variant="outline"
                 onClick={logout}
-                className="border-header-foreground/30 bg-transparent text-header-foreground hover:bg-header-foreground/10 hover:text-header-foreground"
+                className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
               >
                 Sign out
               </Button>
