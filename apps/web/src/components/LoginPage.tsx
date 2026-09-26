@@ -8,8 +8,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 
+// All validation lives here (via zodResolver) — the form sets noValidate so
+// the browser's built-in checks (e.g. type="email") never run first.
 const loginSchema = z.object({
-  email: z.email('Enter a valid email'),
+  email: z.email({
+    error: (iss) =>
+      iss.input === '' ? 'Email is required' : 'Enter a valid email',
+  }),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -24,7 +29,10 @@ export function LoginPage() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
   async function onSubmit(values: LoginFormValues) {
     try {
@@ -48,6 +56,7 @@ export function LoginPage() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
+          noValidate
           className="mt-8 flex flex-col gap-5"
         >
           {errors.root && (
@@ -65,10 +74,14 @@ export function LoginPage() {
               type="email"
               autoComplete="email"
               className="h-10 px-3"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'email-error' : undefined}
               {...register('email')}
             />
             {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p id="email-error" className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-2">
@@ -78,10 +91,12 @@ export function LoginPage() {
               type="password"
               autoComplete="current-password"
               className="h-10 px-3"
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={errors.password ? 'password-error' : undefined}
               {...register('password')}
             />
             {errors.password && (
-              <p className="text-sm text-destructive">
+              <p id="password-error" className="text-sm text-destructive">
                 {errors.password.message}
               </p>
             )}
