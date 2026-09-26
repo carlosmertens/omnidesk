@@ -22,7 +22,7 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, single-work
 - **`@nestjs/config`, validated with a plain Zod schema** — `ConfigModule.forRoot({ isGlobal: true, validationSchema })` fails startup fast (and loudly) on missing/invalid env vars instead of failing later with a confusing `undefined` somewhere downstream. Uses `@nestjs/config`'s native Standard Schema support so the same Zod-first pattern covers env validation too, instead of adding `class-validator` just for this.
 - **`@nestjs/swagger` + `nestjs-zod`'s `cleanupOpenApiDoc()`** — official Nest OpenAPI module, generating interactive Swagger UI docs directly from the existing Zod DTOs (no separate schema duplication just for docs). Served at `/docs`.
 - **Global `/api` route prefix** (`app.setGlobalPrefix('api')`) — conventional REST API namespacing (e.g. `GET /api/health`); Swagger UI stays unprefixed at `/docs`.
-- **CORS via `app.enableCors()`** — origin read from `FRONTEND_URL` env var (defaults to `http://localhost:5173`), `credentials: true` for the cookie-based session auth planned in Phase 1.
+- **CORS via `app.enableCors()`** — origin read from `FRONTEND_URL` env var (defaults to `http://localhost:5173`), `credentials: true` for the cookie-based session auth.
 - **Vitest + Supertest** — ships free with the Nest CLI scaffold (Nest v12's default for new ESM-first projects is Vitest, not Jest; adopted as-is rather than fighting the CLI default).
 - **ESM** (`"type": "module"`) — Nest v12's default module system for new projects.
 
@@ -42,6 +42,8 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, single-work
 ## Auth
 - **`@nestjs/passport` + `passport-local`, session-based** — session store in the existing Postgres (`connect-pg-simple`), password hashing via **bcrypt**.
   - Deliberately not fully custom session handling — same DB-backed cookie session shape, but built on maintained libraries to avoid hand-rolled auth security bugs.
+  - Authorization is role-based only (`ADMIN` / `ASSOCIATE` via `RolesGuard` + `@Roles()`), within a single workspace.
+  - Dev bootstrap: `prisma db seed` upserts one ADMIN from `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` in `apps/api/.env` — no signup UI.
 
 ## Email
 - **SendGrid** (picked over Mailgun to avoid carrying an undecided either/or) — outbound delivery and inbound parse webhook for email ingestion.
@@ -53,7 +55,7 @@ Scope: fast path to a working v1 per `project-scope.md` (email-only, single-work
 ## Containerization
 - **Docker Compose**: Postgres + pgvector only (`pgvector/pgvector:pg18` — Postgres 18 is current as of this writing, checked via context7/Docker Hub rather than assuming pg16).
   - Postgres 18's official image changed its data-directory convention: the named volume must mount at `/var/lib/postgresql` (not `/var/lib/postgresql/data`, the pg16/17 convention) or the container crash-loops on start. Worth knowing if bumping the major version again later.
-- Run the Nest server directly (`npm run start:dev`) locally for fastest iteration; add it to Compose closer to deployment.
+- Run the Nest server directly (`pnpm --filter api run start:dev`) locally for fastest iteration; add it to Compose closer to deployment.
 
 ## Ticket model (from project-scope.md, for reference)
 - Statuses: `open` → `resolved` → `closed`.

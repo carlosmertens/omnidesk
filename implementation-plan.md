@@ -1,7 +1,7 @@
 # OmniDesk MVP — Implementation Plan
 
 ## Context
-OmniDesk is a greenfield project — only `project-scope.md` and `tech-stack.md` exist so far, no code. The scope defines a email-only AI helpdesk (AI attempts to auto-resolve tickets against a knowledge base; falls back to a human representative when there's no KB match or the ticket involves money/account actions). The stack is decided: React/Vite frontend, NestJS backend, Postgres+Prisma+pgvector, Claude+Voyage AI, session auth via Passport, SendGrid for email.
+OmniDesk is a greenfield project — only `project-scope.md` and `tech-stack.md` exist so far, no code. The scope defines an email-only, single-workspace AI helpdesk (AI attempts to auto-resolve tickets against a knowledge base; falls back to a human representative when there's no KB match or the ticket involves money/account actions). The stack is decided: React/Vite frontend, NestJS backend, Postgres+Prisma+pgvector, Claude+Voyage AI, session auth via Passport, SendGrid for email.
 
 The user is strong on frontend but has little backend experience, and explicitly wants this project to double as a NestJS/backend learning vehicle. The plan below is sequenced to build backend confidence early (a thin, fully-working full-stack slice before any AI/email complexity), isolates the two hardest new concepts (pgvector raw SQL, LLM SDK integration) into their own phase away from email-webhook debugging, and calls out the specific new backend concept being learned at each non-trivial backend task.
 
@@ -74,12 +74,17 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 
 **Post-Phase-1 change — multi-tenancy removed.** Decided the product is a single workspace: roles (`ADMIN`/`ASSOCIATE`) gate functionality, but there's only one tenant. Removed the `Workspace` model and `User.workspaceId` (email is now globally `@unique`), the `@CurrentWorkspace()` decorator, and the `workspaceId` field from the login DTO/`LocalStrategy`/login form/`/auth/me` response. `UsersService.findAllByWorkspace()` became `findAll()`. Since this was still pre-production dev data, the old migrations were deleted and replaced with a single fresh `init` migration (the DB was reset). Seed admin is now `admin@example.com` / `SeedPass#1234`. The Phase 1 notes above are kept as history and still mention workspaces.
 
+**Follow-ups after that change:**
+- Frontend restyle: light gray background, blue primary, larger login card with an inline error banner, and a new `AppShell` (dark top bar with brand, role, sign out) wrapping signed-in routes. The Phase 0 placeholder homepage (`App.tsx`) and `BackendHealthCheck` were replaced by a `DashboardPage` placeholder.
+- Seed credentials moved out of `seed.ts` into `apps/api/.env` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, Zod-validated in the seed script). The seed now **upserts**, so re-running it is safe and updates the password.
+- Docs pass: root/API/web READMEs now cover env files, seeding, DB reset, auth routes and roles; every `.env.example` is commented.
+
 ## Phase 2: Core Ticket CRUD + Dashboard (No AI/Email Yet)
 **Goal:** Prove out the domain model and full-stack CRUD pattern against manually created tickets before touching AI or email.
 
 1. Prisma schema for `Ticket` (status `open`/`resolved`/`closed`, category enum, `assignedUserId`, `customerEmail`) and `TicketMessage` (`sender`: `customer`/`agent`/`ai`). Migrate.
 2. `TicketsModule`/`Service`/`Controller`: `POST /tickets` (manual creation stands in for inbound email), `GET /tickets/:id`. *Learning: the module pattern repeated at scale, cementing Phase 0/1.*
-3. `GET /tickets` with status/category filter + sort, Checkpoint: filtering/sorting works via query string.
+3. `GET /tickets` with status/category filter + sort. Checkpoint: filtering/sorting works via query string.
 4. `PATCH /tickets/:id` for status transitions (simple state-machine validation in the service) + manual assignment. `POST /tickets/:id/messages` to append a reply (reused later for AI-sent replies).
 5. Supertest e2e for create/list/filter/status-transition. *Learning: Nest's e2e pattern — real app module in-process against a test DB.*
 6. Frontend: ticket dashboard (filter/sort table) + manual "create ticket" form (RHF+Zod).
@@ -128,7 +133,7 @@ This file is meant to be a living document — reorder, add, or check off tasks 
 8. README pass documenting env vars, local setup, and on-ramps for every deferred item (pg-boss queue point, shared Zod package, attachments/object storage, observability, deployment target).
 
 ## Critical files
-- `apps/api/prisma/schema.prisma` — multi-tenant data model every phase extends.
+- `apps/api/prisma/schema.prisma` — data model every phase extends.
 - `apps/api/src/prisma/prisma.service.ts` — injectable Prisma client; home for raw pgvector `$queryRaw`/`$executeRaw` calls.
 - `apps/api/src/auth/` — strategy, guards, session serializer; defines `@Roles()` used everywhere downstream.
 - `apps/api/src/tickets/tickets.service.ts` — orchestration hub (classify → KB search → draft → auto-resolve), called from both manual creation and the email webhook.
