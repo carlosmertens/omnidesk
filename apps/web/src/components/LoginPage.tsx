@@ -5,13 +5,6 @@ import { z } from 'zod';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { Button } from './ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 
@@ -49,43 +42,60 @@ export function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-          <CardDescription>Sign in to OmniDesk.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
-          >
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register('email')} />
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
+      <div className="w-full max-w-md rounded-xl bg-card p-10 shadow-sm ring-1 ring-foreground/5">
+        <h1 className="text-2xl font-bold tracking-tight">OmniDesk</h1>
+        <p className="mt-1 text-muted-foreground">Sign in to your account</p>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-8 flex flex-col gap-5"
+        >
+          {errors.root && (
+            <div
+              role="alert"
+              className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+            >
+              {errors.root.message}
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register('password')} />
-              {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-            {errors.root && (
-              <p className="text-sm text-destructive">{errors.root.message}</p>
+          )}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              className="h-10 px-3"
+              {...register('email')}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              className="h-10 px-3"
+              {...register('password')}
+            />
+            {errors.password && (
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            size="lg"
+            className="h-10 w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </Button>
+        </form>
+      </div>
     </main>
   );
 }

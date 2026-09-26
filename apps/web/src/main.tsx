@@ -2,7 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import './index.css';
-import App from './App.tsx';
+import { AppShell } from './components/AppShell.tsx';
+import { DashboardPage } from './components/DashboardPage.tsx';
 import { Layout } from './components/Layout.tsx';
 import { LoginPage } from './components/LoginPage.tsx';
 import { RequireAuth } from './components/RequireAuth.tsx';
@@ -16,7 +17,9 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<Layout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<RequireAuth />}>
-              <Route index element={<App />} />
+              <Route element={<AppShell />}>
+                <Route index element={<DashboardPage />} />
+              </Route>
             </Route>
           </Route>
         </Routes>
